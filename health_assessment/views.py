@@ -7,6 +7,7 @@ import traceback
 import uuid
 
 from django.conf import settings
+from django.views import generic
 
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import APIException
@@ -20,6 +21,14 @@ from health_assessment.utils import get_insights
 
 logger = logging.getLogger(__name__)
 
+class Availability(generic.ListView):
+    template_name = "index.html"
+    context_object_name = "data"
+
+    def get_queryset(self):
+        data = dict()
+        return data
+
 """
 API to Upload Files
 """
@@ -29,6 +38,8 @@ API to Upload Files
 @api_view(['POST'])
 def file(request):
     try:
+        print(request.POST)
+        print(request.FILES)
         post_data = request.POST
         gainsight = post_data.get('gainsight', None)
         id_field = post_data.get('id_field', None)
@@ -42,18 +53,20 @@ def file(request):
             raise APIException(detail="No Files Uploaded", status=status.HTTP_400_BAD_REQUEST)
         else:
             directory_name = uuid.uuid4()
-            gainsight = 1 if gainsight == 'true' else 0
+            gainsight = 1 if gainsight == 'on' else 0
             id_field = id_field[0]
             run = Run()
             run.scorecard_history=request.FILES['scorecard_history']
             run.outcome_data=request.FILES['outcome_data']
-            run.account_details=request.FILES['account_details']
-            run.preprocessed_file=request.FILES['preprocessed_file']
-            run.snapshot_date=datetime.datetime.strptime(snapshot_date, '%d/%m/%Y')
-            run.churn_date=datetime.datetime.strptime(churn_date, '%d/%m/%Y')
-            run.id_field=id_field
-            run.gainsight=gainsight
-            run.run_id=directory_name
+
+            if gainsight == 1:
+                run.account_details=request.FILES['account_details']
+            
+            run.snapshot_date = snapshot_date
+            run.churn_date = churn_date
+            run.id_field = id_field
+            run.gainsight = gainsight
+            run.run_id = directory_name
             run.save()
             logger.info(f"Run Created Successfully with RunId {directory_name}")
         return Response({

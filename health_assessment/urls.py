@@ -22,5 +22,6 @@ from health_assessment import views
 urlpatterns = [
     path('run/', views.file, name='run'),
     path('availability/<str:run_id>', views.data_availability, name='availability'),
-    path('assessment/<str:run_id>', views.metrics_assessment, name='assessment')
+    path('assessment/<str:run_id>', views.metrics_assessment, name='assessment'),
+    path('availability', views.Availability.as_view(), name='availability_form')
 ]
