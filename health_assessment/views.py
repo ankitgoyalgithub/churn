@@ -46,8 +46,6 @@ API to Upload Files
 @api_view(['POST'])
 def file(request):
     try:
-        print(request.POST)
-        print(request.FILES)
         post_data = request.POST
         gainsight = post_data.get('gainsight', None)
         id_field = post_data.get('id_field', None)
@@ -99,7 +97,7 @@ def data_availability(request, run_id):
         if run.gainsight:
             company_data = pd.read_csv(run.account_details.path, encoding="cp1252")
         
-        obj=HealthAssessment(ID ='Account ID', churn_date = 'Inactivation Date', snapshot_date = 'Snapshot Date',target = 'Status', metrics_col=["Create Offer Tool",
+        obj=HealthAssessment(ID = run.id_field, churn_date = 'Inactivation Date', snapshot_date = 'Snapshot Date',target = 'Status', metrics_col=["Create Offer Tool",
                         "Lost Sales","Last Visit","Opinion Scores","GM Tenure","Billing","CSM Opinion","CSS Opinion",
                         "Avg Days to Close","Tenure","Close Rate","Default","Pricing","NPS"])
         processed=obj.preprocess_data(outcome_data, history_data, company_data)
@@ -159,10 +157,9 @@ def metrics_assessment(request, run_id):
                         "Avg Days to Close","Tenure","Close Rate","Default","Pricing","NPS"])
         processed=obj.preprocess_data(outcome_data, history_data, company_data)
         model_record=obj.run_health_assessment(processed)
-        model_record.fillna(0,inplace=True)
+        model_record.fillna(0, inplace=True)
         model_record.model_status=model_record.model_status.apply(lambda x: 0 if x=='Active' else 1) 
-        ks_output_dict = get_insights(model_record,cols,'model_status',[3,4,5])
-        print(ks_output_dict)
+        ks_output_dict = get_insights(model_record, cols, 'model_status', [3,4,5])
         return Response({
             "run_id": run_id
         })

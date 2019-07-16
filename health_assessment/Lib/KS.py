@@ -1,3 +1,4 @@
+
 import pandas as pd
 from health_assessment.Lib.bins import qcutnew
 
@@ -10,8 +11,7 @@ def KS(labelCol, predictedCol, nBins=10, retBins=False, bincuts=False, binlabels
     assert labelCol.ndim == predictedCol.ndim
     assert set(labelCol) in [set([0, 1])]
     inpDF = pd.DataFrame({'Label':labelCol, 'Predicted':predictedCol})
-    #print 'Expecting the predicted value to take more than one value here->'
-    #print 'test passed!'
+
     # checking if the distinct values are less than 10
     if bincuts is False:
         assert inpDF['Predicted'].min() != inpDF['Predicted'].max()
@@ -43,14 +43,12 @@ def KS(labelCol, predictedCol, nBins=10, retBins=False, bincuts=False, binlabels
     else:
         return max(ksTable.KS, key=abs), ksTable
 
-
 def tableFormatter(inpksTable):
     newTable = inpksTable.copy()
     for col in ['minScore', 'maxScore', 'cumonespct', 'cumzerospct', 'dvrate', 'cumdvrate']:
         newTable[col] = newTable[col].apply('{0:.2}'.format)
     newTable['KS'] = newTable['KS'].map(lambda x:round(x,1))
     return newTable
-
 
 def KSBestSplitThreshold(labels, predictions, retBins=False):
     maxKS, ksTable = KS(labels, predictions, nBins=40)

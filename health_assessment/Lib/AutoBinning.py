@@ -1,7 +1,6 @@
 import math
 import numpy as np
-import random
-
+import random 
 from health_assessment.Lib.KS import KS
 
 class AutoBinning(object):
@@ -9,8 +8,7 @@ class AutoBinning(object):
                  max_bins_for_thresholds=1000, min_ratio_on_evidence_for_complex_model=3):
         self.target = target
         self.metric_col = metric_col
-        self.bin_range= bin_range
-        assert min(bin_range) > 0
+        self.bin_range = bin_range
         self.min_ks = min_ks
         self.random_iterations = random_iterations
         self.max_iter_to_converge = max_iter_to_converge
@@ -20,17 +18,16 @@ class AutoBinning(object):
         self.all_thresholds = []
 
         if self.max_bins_for_thresholds is None:
-            self.max_bins_for_thresholds = int(metric_col.nunique()/2.0)
+            self.max_bins_for_thresholds = int(metric_col.nunique() / 2.0)
         assert len(bin_range) > 0
 
     def make_all_possible_thresholds(self, data):
-        if data[self.metric_col].nunique() <=10:
-            self.all_thresholds = [-1*float('inf')] + list(data[self.metric_col].unique()) + [float('inf')]
+        if data[self.metric_col].nunique() <= 10:
+            self.all_thresholds = [-1 * float('inf')] + list(data[self.metric_col].unique()) + [float('inf')]
         else:
             _, _, self.all_thresholds = KS(labelCol=data[self.target], predictedCol=data[self.metric_col],
-                                        nBins=self.max_bins_for_thresholds, retBins=True)
+                                           nBins=self.max_bins_for_thresholds, retBins=True)
         self.all_thresholds = sorted(self.all_thresholds)
-        assert len(self.all_thresholds) > 2
 
     @staticmethod
     def find_middle(inplist):
@@ -43,7 +40,8 @@ class AutoBinning(object):
             return inplist[int(len_here / 2)]
 
     def find_potential_thresholds(self, lower_exclusive_threshold, upper_inclusive_threshold):
-        return sorted([each_th for each_th in self.all_thresholds if lower_exclusive_threshold <= each_th <= upper_inclusive_threshold])
+        return sorted([each_th for each_th in self.all_thresholds if
+                       lower_exclusive_threshold <= each_th <= upper_inclusive_threshold])
 
     def default_threshold(self, inpdata, lower_value, upper_value):
         subset_data = inpdata[(inpdata[self.metric_col] > lower_value) & (inpdata[self.metric_col] <= upper_value)]
@@ -61,7 +59,6 @@ class AutoBinning(object):
             bin_cut_threshold = median_metric
         return bin_cut_threshold
 
-
     def get_best_split_threshold(self, data, lower_threshold_input, upper_threshold_input):
         renewal_actual = data[self.target]
         bincuts_for_ks = self.find_potential_thresholds(lower_exclusive_threshold=lower_threshold_input,
@@ -69,10 +66,15 @@ class AutoBinning(object):
         if data[self.target].nunique() == 1:
             bin_cut_threshold = self.default_threshold(data, lower_value=lower_threshold_input,
                                                        upper_value=upper_threshold_input)
-        elif data[self.metric_col].nunique()== 1:
+        elif data[self.metric_col].nunique() == 1:
             bin_cut_threshold = data[self.metric_col].unique()[0]
-            
+
         else:
+            print('*****************************************')
+            print(renewal_actual.value_counts())
+            print(data[self.metric_col].value_counts()) 
+            print(bincuts_for_ks)
+            print('*****************************************')
             ksdev, kstable = KS(renewal_actual, data[self.metric_col], bincuts=bincuts_for_ks)
             if abs(ksdev) >= self.min_ks:
                 bin_cut_threshold = kstable.ix[abs(kstable.KS).idxmax()]['minScore']
@@ -82,7 +84,7 @@ class AutoBinning(object):
                                                            upper_value=upper_threshold_input)
         return bin_cut_threshold
 
-    def get_subset_data(self,data, lower_end, upper_end):
+    def get_subset_data(self, data, lower_end, upper_end):
         subset_data = data[(data[self.metric_col] > lower_end) & (data[self.metric_col] <= upper_end)].copy()
         return subset_data
 
@@ -91,18 +93,17 @@ class AutoBinning(object):
         thresholds.append(-np.inf)
         if no_of_bins != 1:
             temp = self.all_thresholds[1:-1]
-            thresholds += random.sample(list(temp), no_of_bins-1)
+            thresholds += random.sample(list(temp), no_of_bins - 1)
         thresholds.append(np.inf)
         return sorted(thresholds)
 
     def adjust_thresholds(self, data, initial_threshold_set):
         bins = []
-        # thresholds=input_threshold
         for each_index in range(1, len(initial_threshold_set) - 1):
-            lower_threshold = initial_threshold_set[each_index-1]
-            upper_threshold = initial_threshold_set[each_index+1]
+            lower_threshold = initial_threshold_set[each_index - 1]
+            upper_threshold = initial_threshold_set[each_index + 1]
             subset_data = self.get_subset_data(data, initial_threshold_set[each_index - 1],
-                                          initial_threshold_set[each_index + 1])
+                                               initial_threshold_set[each_index + 1])
             bin_cut_threshold = self.get_best_split_threshold(subset_data, lower_threshold, upper_threshold)
             initial_threshold_set[each_index] = bin_cut_threshold
             bins.append(bin_cut_threshold)
@@ -148,8 +149,8 @@ class AutoBinning(object):
         return True if actual_ratio >= self.min_ratio_on_evidence_for_complex_model else False
 
     def get_beta_value_log(self, data, split_bin):
-        split_bin=np.sort(list(set(split_bin)))
-        ksdev, kstable = KS(data[self.target], data[self.metric_col], bincuts=split_bin)  #bincuts
+        split_bin = np.sort(list(set(split_bin)))
+        ksdev, kstable = KS(data[self.target], data[self.metric_col], bincuts=split_bin)  # bincuts
         beta_log_value = []
         for i in range(kstable.shape[0]):
             beta_log = self.beta_fn_log(kstable[0].values[i] + 1, kstable[1].values[i] + 1)
@@ -167,7 +168,9 @@ class AutoBinning(object):
         return best_split
 
     def make_default_result_dict(self, which_default_value=0.5):
-        return {self.metric_col: [{'left': -1*float('inf'), 'right': float('inf'), 'value': which_default_value}]}
+        return {
+            self.metric_col: [{'left': -1 * float('inf'), 'right': float('inf'),'value': which_default_value}]
+        }
 
     def fit(self, data):
         # handling special cases
@@ -175,17 +178,16 @@ class AutoBinning(object):
         if data.empty:
             self.result_dict = self.make_default_result_dict()
             best_bin = 1
-            best_threshold = [-1*(float('inf')), float('inf')]
+            best_threshold = [-1 * (float('inf')), float('inf')]
             return best_bin, best_threshold
         uniq_values_in_train = data[self.metric_col].nunique()
-        self.bin_range = list(set((range(uniq_values_in_train+1))).intersection(set(self.bin_range+[1])))
+        self.bin_range = list(set((range(uniq_values_in_train + 1))).intersection(set(self.bin_range + [1])))
         if data[self.target].nunique() == 1:
             self.result_dict = self.make_default_result_dict(which_default_value=data[self.target].iloc[0])
             best_bin = 1
-            best_threshold = [-1*float('inf'), float('inf')]
+            best_threshold = [-1 * float('inf'), float('inf')]
             return best_bin, best_threshold
         elif data[self.target].nunique() == 0:
-            #TODO: raise appropriate exception
             return None
         self.make_all_possible_thresholds(data)
         # dropping the bin ranges which are not possible in training data
@@ -197,7 +199,8 @@ class AutoBinning(object):
             all_thresholds_dict, best_split_dict = self.best_threshold_of_n_bins(data, current_bins)
             bin_level_best_split[current_bins] = self.best_random_split_iteration(data, best_split_dict)
             beta_log_dict[current_bins] = self.get_beta_value_log(data, bin_level_best_split[current_bins])
-            if best_bins is None: best_bins = current_bins
+            if best_bins is None:
+                best_bins = current_bins
             else:
                 if self.check_evidence_ratio_of_beta_log(simple_champion_log_beta=beta_log_dict[best_bins],
                                                          complex_challenger_log_beta=beta_log_dict[current_bins]):
@@ -211,5 +214,5 @@ class AutoBinning(object):
         for interval in trained_threshold_dict:
             temp_list.append({'left': interval.left, 'right': interval.right,
                               'value': trained_threshold_dict[interval]})
-        self.result_dict[self.metric_col]=temp_list
+        self.result_dict[self.metric_col] = temp_list
         return best_bins, best_threshold

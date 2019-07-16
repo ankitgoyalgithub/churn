@@ -48,7 +48,7 @@ def qcutnew(x, q, labels=None, retbins=False, precision=3):
     return _bins_to_cuts_new(x, bins, labels=labels, retbins=retbins,
                          precision=precision, include_lowest=True)
 
-def _bins_to_cuts_new(x, bins, right=True, labels=None, retbins=False, precision=3, name=None, include_lowest=False):
+def _bins_to_cuts_new(x, bins, right=True, labels=None, retbins=False,precision=3, name=None, include_lowest=False):
     x_is_series = isinstance(x, Series)
     series_index = None
 
@@ -89,9 +89,10 @@ def _bins_to_cuts_new(x, bins, right=True, labels=None, retbins=False, precision
                 else:
                     break
 
-        elif len(labels) != len(bins) - 1:
-            raise ValueError('Bin labels must be one fewer than the number of bin edges')
         else:
+            if len(labels) != len(bins) - 1:
+                raise ValueError('Bin labels must be one fewer than '
+                                 'the number of bin edges')
             levels = labels
 
         levels = np.asarray(levels, dtype=object)
@@ -111,7 +112,9 @@ def _bins_to_cuts_new(x, bins, right=True, labels=None, retbins=False, precision
 
     return fac, bins
 
-def _format_levels(bins, prec, right=True, include_lowest=False):
+
+def _format_levels(bins, prec, right=True,
+                   include_lowest=False):
     fmt = lambda v: _format_label(v, precision=prec)
     if right:
         levels = []
@@ -119,7 +122,7 @@ def _format_levels(bins, prec, right=True, include_lowest=False):
             fa, fb = fmt(a), fmt(b)
 
             if a != b and fa == fb:
-                raise ValueError('Precision too low')
+                raise ValueError('precision too low')
 
             formatted = '(%s, %s]' % (fa, fb)
 
