@@ -105,6 +105,13 @@
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script>
         $(document).ready(function() {
+            function setCookie(cname, cvalue, exdays) {
+                var d = new Date();
+                d.setTime(d.getTime() + (exdays*24*60*60*1000));
+                var expires = "expires="+ d.toUTCString();
+                document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+            }
+
             $('#gainsight').change(function() {
                 if ($(this).is(":checked")) {
                     $("#accountDetailsRow").css("display", "flex");
@@ -131,7 +138,9 @@
                     contentType: false,
                     data: upload_file,
                     success: function(data) {
-                        console.log(data);
+                        setCookie('run_id', data["run_id"], 10)
+                        window.location = "/health/availability-chart/"+data["run_id"]
+                        console.log(data)
                     }
                 });
             })

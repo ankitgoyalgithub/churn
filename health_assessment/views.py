@@ -29,6 +29,14 @@ class Availability(generic.ListView):
         data = dict()
         return data
 
+class AvailabilityChart(generic.ListView):
+    template_name = "availability.html"
+    context_object_name = "data"
+
+    def get_queryset(self):
+        data = dict()
+        return data
+
 """
 API to Upload Files
 """
@@ -78,7 +86,7 @@ def file(request):
         traceback.print_exception(*exec_info)
         raise APIException("Unable to Save Details")
 
-@api_view(['POST'])
+@api_view(['GET'])
 def data_availability(request, run_id):
     try:
         response = dict()
