@@ -14,8 +14,8 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <a class="navbar-brand" href="#">Health Assessment</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                          <span class="navbar-toggler-icon"></span>
-                        </button>
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav ml-auto">
@@ -44,8 +44,30 @@
             <div class="mx-auto p-4" style="width:80%;" id="availabilityChart">
             </div>
         </div>
+        <div class="row mb-3">
+            <div class="shadow border border-white p-3 col-md-6 text-left rounded">
+                <p>
+                    ID Column: Account ID<br>
+                    Churn Date: Inactivation Date<br>
+                    Snapshot Date: Snapshot Date<br>
+                    Target Field: Status<br>
+                </p>
+            </div>
+            <div class="shadow border border-white p-3 col-md-6 text-left rounded">
+                <p>
+                    History File: history_2000.csv<br>
+                    Outcome Data: outcome_date.csv<br>
+                    Account Details: company.csv<br>
+                    RunId: ahgd875612e78t87ag87cga<br>
+                </p>
+            </div>
+        </div>
         <div class="row">
-
+            <div class="shadow p-3 mb-5 col-md-12 text-center">
+                <div class="" style="width:100%;">
+                    <button type="submit" class="btn btn-primary" id="goToMetricPage">Confirm</button>
+                </div>
+            </div>
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
@@ -89,8 +111,13 @@
                         startup: true,
                         easing: 'in'
                     },
+                    chartArea: {
+                        left: 30,
+                        top: 20,
+                        bottom: 30
+                    },
                     width: 1600,
-                    height: 700
+                    height: 560
                 };
 
                 var chart = new google.visualization.LineChart(document.getElementById('availabilityChart'));
