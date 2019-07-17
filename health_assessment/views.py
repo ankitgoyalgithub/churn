@@ -47,6 +47,7 @@ API to Upload Files
 def file(request):
     try:
         post_data = request.POST
+        print(post_data)
         gainsight = post_data.get('gainsight', None)
         id_field = post_data.get('id_field', None)
         churn_date = post_data.get('churn_date', None)
@@ -60,7 +61,6 @@ def file(request):
         else:
             directory_name = uuid.uuid4()
             gainsight = 1 if gainsight == 'on' else 0
-            id_field = id_field[0]
             run = Run()
             run.scorecard_history=request.FILES['scorecard_history']
             run.outcome_data=request.FILES['outcome_data']
