@@ -186,6 +186,10 @@
                     }
                 });
             }
+
+            $("#goToMetricPage").click(function(){
+                window.location = "/health/metrics-assessment/" + getCookie("run_id")
+            })
         })
     </script>
 </body>

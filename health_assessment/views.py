@@ -37,6 +37,14 @@ class AvailabilityChart(generic.ListView):
         data = dict()
         return data
 
+class MetricsAssessment(generic.ListView):
+    template_name = "assessment.html"
+    context_object_name = "data"
+
+    def get_queryset(self):
+        data = dict()
+        return data
+
 """
 API to Upload Files
 """
