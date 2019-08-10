@@ -8,6 +8,7 @@ import uuid
 
 from django.conf import settings
 from django.views import generic
+from django.http import HttpResponse, Http404
 
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import APIException
@@ -144,6 +145,16 @@ def data_availability(request, run_id):
         exec_info = sys.exc_info()
         traceback.print_exception(*exec_info)
         raise APIException(str(e))
+
+def download(request):
+    import os
+    file_path = os.path.join('F:\CodesAndProjects\churn\churn\media\sample_files\\test.xlsx')
+
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+            response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(file_path)
+            return response
 
 @api_view(['POST'])
 def metrics_assessment(request, run_id):

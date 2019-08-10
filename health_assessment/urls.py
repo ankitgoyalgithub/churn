@@ -24,6 +24,7 @@ urlpatterns = [
     path('availability/<str:run_id>', views.data_availability, name='availability'),
     path('assessment/<str:run_id>', views.metrics_assessment, name='assessment'),
     path('availability', views.Availability.as_view(), name='availability_form'),
+    path('download', views.download, name='download_data'),
     path('availability-chart/<str:run_id>', views.AvailabilityChart.as_view(), name='availability_chart'),
     path('metrics-assessment/<str:run_id>', views.MetricsAssessment.as_view(), name='metrics_assessment'),
 ]
