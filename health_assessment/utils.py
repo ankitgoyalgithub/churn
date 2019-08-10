@@ -11,6 +11,6 @@ def get_insights(data=None, metrics_cols=None, target_col=None, bins_to_try=[3,4
     ks_output_dict={}
     for each in best_bin_result_dict.keys():
         ksdev,kstable=KS(data.model_status,data[each],bincuts=best_bin_result_dict[each])#bincuts
-        kstable['lift']=kstable['dvrate']*1.0/kstable.cumdvrate.values[-1]
-        ks_output_dict[each]={'ksvalue':ksdev,'kstable':kstable[['lift']]}
+        kstable['Intensity of Risk']=kstable['dvrate']*1.0/kstable.cumdvrate.values[-1]
+        ks_output_dict[each]={'ksvalue':ksdev,'kstable':kstable[['Intensity of Risk']]}
     return ks_output_dict

@@ -27,6 +27,13 @@ class HealthAssessment:
         data = data.groupby(['year', 'month']).count()
         return data
 
+    def get_outcome_timeline(self,outcome_data, churn_date, period=12):
+        outcome_data[self.churn_date] = pd.to_datetime(outcome_data[self.churn_date])
+        outcome_data['year'] = outcome_data[churn_date].dt.year
+        outcome_data['month'] = outcome_data[churn_date].dt.month
+        outcome_data.sort_values(['year', 'month'], inplace=True)
+        return outcome_data.groupby(['year', 'month', 'Status']).count()[[self.ID]].tail(period)
+
     def preprocess_data(self, outcome, score_history, company):
         # preprocess account outcome data
         if self.use_case == 'Gainsight':
@@ -99,11 +106,11 @@ class HealthAssessment:
 
 
 if __name__ == '__main__':
-    data_dir = '/Users/mkumar/Downloads/Truecar/Old_enagement/'
-    outcome_data = pd.read_csv(data_dir + 'outcome_data.csv', encoding="utf-8")
+    data_dir = '/Users/mkumar/Desktop/health_assessment/'
+    outcome_data = pd.read_csv(data_dir + 'outcome_data.csv', encoding="cp1252")
     # history=pd.read_csv(data_dir+'sc_account_history_a964b2f6fc254946a1ca8f9838f8045f.csv')
-    history = pd.read_csv('history_2000.csv')
-    company = pd.read_csv(data_dir + 'company.csv')
+    history = pd.read_csv(data_dir+'history_2000.csv', encoding="cp1252")
+    company = pd.read_csv(data_dir + 'company.csv', encoding="cp1252")
     obj = HealthAssessment(ID='Account ID', churn_date='Inactivation Date',
                            snapshot_date='Snapshot Date', target='Status', metrics_col=["Create Offer Tool",
                                                                                         "Lost Sales", "Last Visit",
@@ -118,3 +125,5 @@ if __name__ == '__main__':
     #     print available_data_timeline
     #     available_data_timeline.plot(figsize=(15,8))
     model_record = obj.run_health_assessment(processed)
+    outcome_timeline = obj.get_outcome_timeline(outcome_data,'Inactivation Date')
+    print(outcome_timeline)
