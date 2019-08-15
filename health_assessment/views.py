@@ -9,6 +9,7 @@ import uuid
 from django.conf import settings
 from django.views import generic
 from django.http import HttpResponse, Http404
+from django.shortcuts import render
 
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import APIException
@@ -45,6 +46,14 @@ class MetricsAssessment(generic.ListView):
     def get_queryset(self):
         data = dict()
         return data
+
+def report_manager(request, *args, **kwargs):
+    try:
+        return render(request, 'report_manager.html', {})
+    except Exception as e:
+        logger.error("Error Occured While Rendering Reports Manager")
+        logger.error(str(e))
+        raise e
 
 """
 API to Upload Files
