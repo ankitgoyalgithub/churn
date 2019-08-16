@@ -1,1 +1,96 @@
-{% extends "base.html" %} {% block content %} {% endblock %}
+{% extends "base.html" %} {% block content %}
+<div class="row p-4">
+    <div class="col-md-4">
+        <ul class="list-group">
+            {% for report in reports %} {% if forloop.first %}
+            <li class="report-items li-pointer list-group-item active">{{ report }}</li>
+            {% else %}
+            <li class="report-items li-pointer list-group-item">{{ report }}</li>
+            {% endif%} {% endfor %}
+        </ul>
+    </div>
+    <div class="col-md-8">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Feature</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Average Days To Close</td>
+                        <td>18.636541</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Billing</td>
+                        <td>0.0</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>CSM Opinion</td>
+                        <td>0.0</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>CSS Opinion</td>
+                        <td>0.0</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>Close Rate</td>
+                        <td>-7.185447</td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td>Create Offer Tool</td>
+                        <td>29.146973</td>
+                    </tr>
+                    <tr>
+                        <td>7</td>
+                        <td>GM Tenure</td>
+                        <td>2.498819</td>
+                    </tr>
+                    <tr>
+                        <td>8</td>
+                        <td>Last Visit</td>
+                        <td>21.415999</td>
+                    </tr>
+                    <tr>
+                        <td>9</td>
+                        <td>Lost Sales</td>
+                        <td>30.274088</td>
+                    </tr>
+                    <tr>
+                        <td>10</td>
+                        <td>NPS</td>
+                        <td>2.294849</td>
+                    </tr>
+                    <tr>
+                        <td>11</td>
+                        <td>Pricing</td>
+                        <td>18.063972</td>
+                    </tr>
+                    <tr>
+                        <td>12</td>
+                        <td>Tenure</td>
+                        <td>35.273631</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} {% block extra_script %}
+<script>
+    $(document).ready(function() {
+        $(".report-items").click(function() {
+            $(".list-group").find("li.active").removeClass("active");
+            $(this).addClass('active');
+        });
+    });
+</script>{% endblock %}

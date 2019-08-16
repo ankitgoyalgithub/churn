@@ -49,7 +49,10 @@ class MetricsAssessment(generic.ListView):
 
 def report_manager(request, *args, **kwargs):
     try:
-        return render(request, 'report_manager.html', {})
+        report_types = {
+            "reports": ["Top Risky Clients", "Clients With Highest Revenue", "Hello World"]
+        }
+        return render(request, 'report_manager.html', report_types)
     except Exception as e:
         logger.error("Error Occured While Rendering Reports Manager")
         logger.error(str(e))
