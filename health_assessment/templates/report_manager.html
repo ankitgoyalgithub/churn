@@ -3,9 +3,13 @@
     <div class="col-md-4">
         <ul class="list-group">
             {% for report in reports %} {% if forloop.first %}
-            <li class="report-items li-pointer list-group-item active">{{ report }}</li>
+            <li class="report-items li-pointer list-group-item active">{{ report }}
+                <div class="download-icon"><span><i class="fas fa-download"></i></span> </div>
+            </li>
             {% else %}
-            <li class="report-items li-pointer list-group-item">{{ report }}</li>
+            <li class="report-items li-pointer list-group-item">{{ report }}
+                <div class="download-icon"><span><i class="fas fa-download"></i></span></div>
+            </li>
             {% endif%} {% endfor %}
         </ul>
     </div>
@@ -91,6 +95,13 @@
         $(".report-items").click(function() {
             $(".list-group").find("li.active").removeClass("active");
             $(this).addClass('active');
+            alert("Clicked List");
+        });
+
+        $(".download-icon").click(function() {
+            $(".list-group").find("li.active").removeClass("active");
+            $(this).addClass('active');
+            alert("Clicked Download");
         });
     });
 </script>{% endblock %}

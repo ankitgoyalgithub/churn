@@ -70,11 +70,6 @@ class AutoBinning(object):
             bin_cut_threshold = data[self.metric_col].unique()[0]
 
         else:
-            print('*****************************************')
-            print(renewal_actual.value_counts())
-            print(data[self.metric_col].value_counts()) 
-            print(bincuts_for_ks)
-            print('*****************************************')
             ksdev, kstable = KS(renewal_actual, data[self.metric_col], bincuts=bincuts_for_ks)
             if abs(ksdev) >= self.min_ks:
                 bin_cut_threshold = kstable.ix[abs(kstable.KS).idxmax()]['minScore']

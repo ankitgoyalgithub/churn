@@ -4,8 +4,6 @@ import uuid
 from django.db import models
 
 def upload_file_path(instance, filename):
-    print(instance)
-    print(filename)
     return 'user_{0}/{1}'.format(instance.run_id, filename)
 
 class Run(models.Model):
@@ -18,3 +16,7 @@ class Run(models.Model):
     id_field = models.CharField(max_length=64)
     churn_date = models.CharField(max_length=64)
     snapshot_date = models.CharField(max_length=64)
+
+class Report(models.Model):
+    run_id = models.ForeignKey(Run, on_delete=models.CASCADE)
+    report_name = models.CharField(max_length=255)
