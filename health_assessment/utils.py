@@ -53,6 +53,6 @@ def read_s3_file(bucket_name=None, file_path=None, aws_access_key_id=None, aws_s
         raise e
 
 if __name__ == '__main__':
-    headers, data = read_s3_file(bucket_name='voyanalytics', file_path='pageview.csv', aws_access_key_id="AKIAIRVYB7WPQ33F3I3A", aws_secret_access_key="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")
+    headers, data = read_s3_file(bucket_name='voyanalytics', file_path='pageview.csv', aws_access_key_id="", aws_secret_access_key="")
     print(headers)
     print(data)
