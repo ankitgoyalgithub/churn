@@ -20,3 +20,4 @@ class Run(models.Model):
 class Report(models.Model):
     run_id = models.ForeignKey(Run, on_delete=models.CASCADE)
     report_name = models.CharField(max_length=255)
+    report_path = models.CharField(max_length=1024)

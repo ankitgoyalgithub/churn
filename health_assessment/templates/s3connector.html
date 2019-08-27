@@ -1,0 +1,137 @@
+<!DOCTYPE>
+<html>
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <title>
+        Health Assessment
+    </title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">Health Assessment</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                          <span class="navbar-toggler-icon"></span>
+                        </button>
+    </nav>
+    <div class='container-fluid'>
+        <div class="row">
+            <div class="card border-dark mx-auto p-4 mt-4" style="width:50%;">
+                <div class="card-header mb-4">S3 Connection Details</div>
+                <form class="card-body text-dark" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group row">
+                        <label for="aws_secret_id" class="col-sm-2 col-form-label">AWS_SECRET_ID</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="aws_secret_id" placeholder="SECRET ID">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="secret_key" class="col-sm-2 col-form-label">AWS_SECRET_KEY</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="secret_key" placeholder="SECRET KEY">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="bucket_name" class="col-sm-2 col-form-label">BUCKET_NAME</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="bucket_name" placeholder="BUCKET NAME">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="file_path" class="col-sm-2 col-form-label">FILE PATH</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="file_path" placeholder="FILE PATH">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-10">
+                            <button type="submit" class="btn btn-primary" id="form-submit">Submit</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12" id="file-data" style="display: none;">
+                <h2>Table Contents</h2>
+                <div class="table-responsive">
+                    <table class="table table-striped table-sm" id="file-data-table">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script>
+        $(document).ready(function() {
+            function setCookie(cname, cvalue, exdays) {
+                var d = new Date();
+                d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+                var expires = "expires=" + d.toUTCString();
+                document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+            }
+
+            $('#gainsight').change(function() {
+                if ($(this).is(":checked")) {
+                    $("#accountDetailsRow").css("display", "flex");
+                } else {
+                    $("#accountDetailsRow").css("display", "none");
+                }
+            });
+
+            $("#form-submit").click(function(event) {
+                event.preventDefault();
+                let upload_file = new FormData();
+                upload_file.append('secretId', $('#aws_secret_id').val());
+                upload_file.append('secretKey', $('#secret_key').val());
+                upload_file.append('bucketName', $('#bucket_name').val());
+                upload_file.append('filePath', $('#file_path').val());
+                $.ajax({
+                    type: 'post',
+                    url: '/health/read/',
+                    enctype: 'multipart/form-data',
+                    processData: false,
+                    contentType: false,
+                    data: upload_file,
+                    success: function(data) {
+                        var head = data["headers"]
+                        var tdata = data["data"]
+
+                        console.log(tdata);
+
+                        var tableHeader = "<thead>"
+
+                        for (var i = 0; i < head.length; i++) {
+                            tableHeader = tableHeader + "<th>" + head[i] + "</th>";
+                        }
+
+                        tableHeader = tableHeader + "</thead>"
+
+                        var tableData = "<tbody>"
+
+                        for (var i = 0; i < tdata.length; i++) {
+                            tableData = tableData + "<tr>"
+                            for (var j = 0; j < tdata[i].length; j++) {
+                                tableData = tableData + "<td>" + tdata[i][j] + "</td>"
+                            }
+                            tableData = tableData + "</tr>";
+                        }
+
+                        tableData = tableData + "</tbody>"
+
+                        $("#file-data-table").append(tableHeader)
+                        $("#file-data-table").append(tableData)
+                        $("#file-data").css("display", "block");
+                    }
+                });
+            })
+        })
+    </script>
+</body>
+
+</html>

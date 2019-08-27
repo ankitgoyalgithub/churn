@@ -106,13 +106,11 @@ class HealthAssessment:
 
 
 if __name__ == '__main__':
-    data_dir = '/Users/mkumar/Desktop/health_assessment/'
+    data_dir = 'F:\\CodesAndProjects\\churn\\churn\\media\\sample_files\\'
     outcome_data = pd.read_csv(data_dir + 'outcome_data.csv', encoding="cp1252")
-    # history=pd.read_csv(data_dir+'sc_account_history_a964b2f6fc254946a1ca8f9838f8045f.csv')
     history = pd.read_csv(data_dir+'history_2000.csv', encoding="cp1252")
     company = pd.read_csv(data_dir + 'company.csv', encoding="cp1252")
-    obj = HealthAssessment(ID='Account ID', churn_date='Inactivation Date',
-                           snapshot_date='Snapshot Date', target='Status', metrics_col=["Create Offer Tool",
+    obj = HealthAssessment(ID='Account ID', churn_date='Inactivation Date', snapshot_date='Snapshot Date', target='Status', metrics_col=["Create Offer Tool",
                                                                                         "Lost Sales", "Last Visit",
                                                                                         "Opinion Scores", "GM Tenure",
                                                                                         "Billing", "CSM Opinion",
@@ -121,9 +119,6 @@ if __name__ == '__main__':
                                                                                         "Close Rate", "Default",
                                                                                         "Pricing", "NPS"])
     processed = obj.preprocess_data(outcome_data, history, company)
-    #     available_data_timeline=obj.available_data(processed,obj.snapshot_date)
-    #     print available_data_timeline
-    #     available_data_timeline.plot(figsize=(15,8))
     model_record = obj.run_health_assessment(processed)
     outcome_timeline = obj.get_outcome_timeline(outcome_data,'Inactivation Date')
     print(outcome_timeline)

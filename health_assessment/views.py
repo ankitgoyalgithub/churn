@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+import os
 import pandas as pd
 import sys
 import traceback
@@ -8,7 +9,7 @@ import uuid
 
 from django.conf import settings
 from django.views import generic
-from django.http import HttpResponse, Http404
+from django.http import FileResponse, HttpResponse, Http404
 from django.shortcuts import render
 
 from rest_framework.decorators import api_view
@@ -16,9 +17,9 @@ from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework import status
 
-from health_assessment.models import Run
+from health_assessment.models import Run, Report
 from health_assessment.Lib.healthassessment import HealthAssessment
-from health_assessment.utils import get_insights
+from health_assessment.utils import get_insights, read_s3_file
 
 
 logger = logging.getLogger(__name__)
@@ -47,11 +48,27 @@ class MetricsAssessment(generic.ListView):
         data = dict()
         return data
 
+class SourceConnector(generic.ListView):
+    template_name = "s3connector.html"
+    context_object_name = "data"
+
+    def get_queryset(self):
+        data = dict()
+        return data
+
 def report_manager(request, *args, **kwargs):
     try:
         report_types = {
-            "reports": ["Top Risky Clients", "Clients With Highest Revenue", "Hello World"]
+            "reports": []
         }
+        run_id = kwargs['run_id']
+        run = Run.objects.get(run_id=run_id)
+        reports = Report.objects.filter(run_id=run.id)
+        for r in reports:
+            report_types["reports"].append({
+                "name":r.report_name,
+                "id": r.id
+            })
         return render(request, 'report_manager.html', report_types)
     except Exception as e:
         logger.error("Error Occured While Rendering Reports Manager")
@@ -68,7 +85,6 @@ API to Upload Files
 def file(request):
     try:
         post_data = request.POST
-        print(post_data)
         gainsight = post_data.get('gainsight', None)
         id_field = post_data.get('id_field', None)
         churn_date = post_data.get('churn_date', None)
@@ -158,19 +174,19 @@ def data_availability(request, run_id):
         traceback.print_exception(*exec_info)
         raise APIException(str(e))
 
-def download(request):
-    import os
-    file_path = os.path.join('F:\CodesAndProjects\churn\churn\media\sample_files\\test.xlsx')
+@api_view(['GET'])
+def download(request, report_id):
+    report = Report.objects.get(id=report_id)
+    file_path = settings.DOMAIN + "/media" + report.report_path.split("media")[1]
+    response = {
+        "path": file_path
+    }
+    return Response(response)
 
-    if os.path.exists(file_path):
-        with open(file_path, 'rb') as fh:
-            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
-            response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(file_path)
-            return response
-
-@api_view(['POST'])
+@api_view(['GET'])
 def metrics_assessment(request, run_id):
     try:
+        report_path = os.path.join(settings.MEDIA_ROOT, "user_"+run_id)
         cols=['Create Offer Tool', 'Lost Sales', 'Last Visit', 'GM Tenure', 'Billing', 'CSM Opinion', 'CSS Opinion',
             'Avg Days to Close', 'Tenure', 'Close Rate', 'Pricing', 'NPS']
 
@@ -186,11 +202,24 @@ def metrics_assessment(request, run_id):
         obj=HealthAssessment(ID ='Account ID', churn_date = 'Inactivation Date', snapshot_date = 'Snapshot Date',target = 'Status', metrics_col=["Create Offer Tool",
                         "Lost Sales","Last Visit","Opinion Scores","GM Tenure","Billing","CSM Opinion","CSS Opinion",
                         "Avg Days to Close","Tenure","Close Rate","Default","Pricing","NPS"])
-        processed=obj.preprocess_data(outcome_data, history_data, company_data)
-        model_record=obj.run_health_assessment(processed)
-        model_record.fillna(0, inplace=True)
-        model_record.model_status=model_record.model_status.apply(lambda x: 0 if x=='Active' else 1) 
-        ks_output_dict = get_insights(model_record, cols, 'model_status', [3,4,5])
+        # processed=obj.preprocess_data(outcome_data, history_data, company_data)
+        # model_record=obj.run_health_assessment(processed)
+        # model_record.fillna(0, inplace=True)
+        # model_record.model_status=model_record.model_status.apply(lambda x: 0 if x=='Active' else 1) 
+        # ks_output_dict = get_insights(model_record, cols, 'model_status', [3,4,5])
+        
+        create_report_entry = True
+        outcome_timeline_reportpath = os.path.join(report_path, "outcome_timeline.csv")
+
+        if os.path.exists(outcome_timeline_reportpath):
+            create_report_entry = False
+
+        outcome_timeline = obj.get_outcome_timeline(outcome_data,'Inactivation Date') # OutCome Timeline Report
+        outcome_timeline.to_csv(outcome_timeline_reportpath, header=True)
+        
+        if create_report_entry:
+            report = Report(run_id=run, report_name="Monthly Target Distribution", report_path=outcome_timeline_reportpath)
+            report.save()
         return Response({
             "run_id": run_id
         })
@@ -198,4 +227,21 @@ def metrics_assessment(request, run_id):
         logger.error(str(e))
         exec_info = sys.exc_info()
         traceback.print_exception(*exec_info)
+        raise APIException(str(e))
+
+@api_view(['POST'])
+def s3_file(request):
+    try:
+        secret_id  = request.POST.get("secretId", None) 
+        secret_key = request.POST.get("secretKey", None) 
+        bucket_name = request.POST.get("bucketName", None) 
+        file_path = request.POST.get("filePath", None) 
+
+        header, data = read_s3_file(bucket_name=bucket_name, file_path=file_path, aws_access_key_id=secret_id, aws_secret_access_key=secret_key)
+
+        return Response({
+            "headers": header,
+            "data": data
+        })
+    except Exception as e:
         raise APIException(str(e))

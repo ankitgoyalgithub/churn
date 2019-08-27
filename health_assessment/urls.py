@@ -21,11 +21,13 @@ from health_assessment import views
 
 urlpatterns = [
     path('run/', views.file, name='run'),
+    path('read/', views.s3_file, name='read_s3'),
+    path('source-connector/', views.SourceConnector.as_view(), name='source_connector'),
     path('availability/<str:run_id>', views.data_availability, name='availability'),
     path('assessment/<str:run_id>', views.metrics_assessment, name='assessment'),
     path('availability', views.Availability.as_view(), name='availability_form'),
     path('reports/<str:run_id>', views.report_manager, name='reports_manager'),
-    path('download', views.download, name='download_data'),
+    path('download/<str:report_id>', views.download, name='download_data'),
     path('availability-chart/<str:run_id>', views.AvailabilityChart.as_view(), name='availability_chart'),
     path('metrics-assessment/<str:run_id>', views.MetricsAssessment.as_view(), name='metrics_assessment'),
 ]
