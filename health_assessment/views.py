@@ -11,15 +11,21 @@ from django.conf import settings
 from django.views import generic
 from django.http import FileResponse, HttpResponse, Http404
 from django.shortcuts import render
+from django.contrib.auth.models import User
 
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import generics
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 from health_assessment.models import Run, Report
 from health_assessment.Lib.healthassessment import HealthAssessment
 from health_assessment.utils import get_insights, read_s3_file
+from health_assessment.serializers import RunSerializer, UserSerializer
 
 
 logger = logging.getLogger(__name__)
@@ -245,3 +251,36 @@ def s3_file(request):
         })
     except Exception as e:
         raise APIException(str(e))
+
+class RunList(generics.ListCreateAPIView):
+    queryset = Run.objects.all()
+    serializer_class = RunSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        run_id = str(uuid.uuid4())
+        token = request.META.get("HTTP_AUTHORIZATION", None).split(" ")[1]
+        user_id = Token.objects.get(key=token).user_id
+        user = User.objects.get(id=user_id)
+        self.serializer_class = RunSerializer(data=request.data)
+        
+        if self.serializer_class.is_valid():
+            self.serializer_class.save(user_id=user, run_id=run_id, preprocessed_file="test.txt")
+            return Response(self.serializer_class.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(self.serializer_class.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class RunDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Run.objects.all()
+    serializer_class = RunSerializer
+
+class UserList(generics.ListCreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+class UserDetail(generics.RetrieveAPIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
+    serializer_class = UserSerializer

@@ -18,6 +18,7 @@ from django.conf.urls import include
 from django.urls import path
 
 from health_assessment import views
+from rest_framework.authtoken import views as rest_user_view
 
 urlpatterns = [
     path('run/', views.file, name='run'),
@@ -30,4 +31,9 @@ urlpatterns = [
     path('download/<str:report_id>', views.download, name='download_data'),
     path('availability-chart/<str:run_id>', views.AvailabilityChart.as_view(), name='availability_chart'),
     path('metrics-assessment/<str:run_id>', views.MetricsAssessment.as_view(), name='metrics_assessment'),
+    path('users/', views.UserList.as_view()),
+    path('users/<int:pk>/', views.UserDetail.as_view()),
+    path('runs/', views.RunList.as_view()),
+    path('runs/<int:pk>/', views.RunDetail.as_view()),
+    path('api-token-auth/', rest_user_view.obtain_auth_token)
 ]
