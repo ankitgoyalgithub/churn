@@ -208,6 +208,7 @@ def metrics_assessment(request, run_id):
         obj=HealthAssessment(ID ='Account ID', churn_date = 'Inactivation Date', snapshot_date = 'Snapshot Date',target = 'Status', metrics_col=["Create Offer Tool",
                         "Lost Sales","Last Visit","Opinion Scores","GM Tenure","Billing","CSM Opinion","CSS Opinion",
                         "Avg Days to Close","Tenure","Close Rate","Default","Pricing","NPS"])
+        
         # processed=obj.preprocess_data(outcome_data, history_data, company_data)
         # model_record=obj.run_health_assessment(processed)
         # model_record.fillna(0, inplace=True)
@@ -226,6 +227,7 @@ def metrics_assessment(request, run_id):
         if create_report_entry:
             report = Report(run_id=run, report_name="Monthly Target Distribution", report_path=outcome_timeline_reportpath)
             report.save()
+        
         return Response({
             "run_id": run_id
         })
@@ -274,13 +276,3 @@ class RunList(generics.ListCreateAPIView):
 class RunDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Run.objects.all()
     serializer_class = RunSerializer
-
-class UserList(generics.ListCreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-class UserDetail(generics.RetrieveAPIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-    queryset = User.objects.all()
-    serializer_class = UserSerializer

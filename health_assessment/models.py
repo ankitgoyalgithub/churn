@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import uuid
 
 from django.db import models
@@ -16,7 +16,6 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
         Token.objects.create(user=instance)
 
 class Run(models.Model):
-    user_id = models.ForeignKey('auth.User', related_name='run', on_delete=models.CASCADE)
     run_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     gainsight = models.BooleanField(default=False)
     outcome_data = models.FileField(upload_to=upload_file_path)
@@ -26,6 +25,7 @@ class Run(models.Model):
     id_field = models.CharField(max_length=64)
     churn_date = models.CharField(max_length=64)
     snapshot_date = models.CharField(max_length=64)
+    created_at = models.DateTimeField(default=datetime.now())
 
     def __str__(self):
         return str(self.user_id)+"__"+str(self.preprocessed_file)
