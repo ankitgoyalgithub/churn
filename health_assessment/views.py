@@ -117,7 +117,7 @@ def file(request):
             run.gainsight = gainsight
             run.run_id = directory_name
             run.save()
-            logger.info(f"Run Created Successfully with RunId {directory_name}")
+            logger.info("Run Created Successfully with RunId " + directory_name)
         return Response({
             "run_id": str(directory_name),
             "details": "Success",
@@ -140,7 +140,7 @@ def data_availability(request, run_id):
         if run.gainsight:
             company_data = pd.read_csv(run.account_details.path, encoding="cp1252")
         
-        obj=HealthAssessment(ID = run.id_field, churn_date = 'Inactivation Date', snapshot_date = 'Snapshot Date',target = 'Status', metrics_col=["Create Offer Tool",
+        obj=HealthAssessment(ID = run.id_field, churn_date = run.churn_date, snapshot_date = run.snapshot_date, target = 'Status', metrics_col=["Create Offer Tool",
                         "Lost Sales","Last Visit","Opinion Scores","GM Tenure","Billing","CSM Opinion","CSS Opinion",
                         "Avg Days to Close","Tenure","Close Rate","Default","Pricing","NPS"])
         processed=obj.preprocess_data(outcome_data, history_data, company_data)
@@ -209,11 +209,11 @@ def metrics_assessment(request, run_id):
                         "Lost Sales","Last Visit","Opinion Scores","GM Tenure","Billing","CSM Opinion","CSS Opinion",
                         "Avg Days to Close","Tenure","Close Rate","Default","Pricing","NPS"])
         
-        # processed=obj.preprocess_data(outcome_data, history_data, company_data)
-        # model_record=obj.run_health_assessment(processed)
-        # model_record.fillna(0, inplace=True)
-        # model_record.model_status=model_record.model_status.apply(lambda x: 0 if x=='Active' else 1) 
-        # ks_output_dict = get_insights(model_record, cols, 'model_status', [3,4,5])
+        processed=obj.preprocess_data(outcome_data, history_data, company_data)
+        model_record=obj.run_health_assessment(processed)
+        model_record.fillna(0, inplace=True)
+        model_record.model_status=model_record.model_status.apply(lambda x: 0 if x=='Active' else 1) 
+        ks_output_dict = get_insights(model_record, cols, 'model_status', [3,4,5])
         
         create_report_entry = True
         outcome_timeline_reportpath = os.path.join(report_path, "outcome_timeline.csv")
