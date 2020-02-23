@@ -73,6 +73,12 @@
                         </div>
                     </div>
                     <div class="form-group row">
+                        <label for="metric_fields" class="col-sm-2 col-form-label">Metric Columns</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="metric_fields" placeholder="Metric Columns...">
+                        </div>
+                    </div>
+                    <div class="form-group row">
                         <div class="col-sm-10">
                             <button type="submit" class="btn btn-primary" id="form-submit">Submit</button>
                         </div>
@@ -111,6 +117,7 @@
                 upload_file.append('id_field', $('#id_field').val());
                 upload_file.append('churn_date', $('#churn_date').val());
                 upload_file.append('snapshot_date', $('#snapshot_date').val());
+                upload_file.append('metric_fields', $('#metric_fields').val());
                 $.ajax({
                     type: 'post',
                     url: '/health/run/',

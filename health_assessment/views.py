@@ -95,6 +95,7 @@ def file(request):
         id_field = post_data.get('id_field', None)
         churn_date = post_data.get('churn_date', None)
         snapshot_date = post_data.get('snapshot_date', None)
+        metric_cols = post_data.get("metric_fields", None)
 
         if (gainsight is None) or (id_field is None) or (churn_date is None) or (snapshot_date is None):
             raise APIException(detail="One of Mandatory Fields(gainsight, id_field, churn_date, snapshot_date) is Missing ", code=status.HTTP_400_BAD_REQUEST)
@@ -116,10 +117,12 @@ def file(request):
             run.id_field = id_field
             run.gainsight = gainsight
             run.run_id = directory_name
+            run.metric_cols = metric_cols
             run.save()
-            logger.info("Run Created Successfully with RunId " + directory_name)
+            run_id_str = directory_name.urn[9:]
+            logger.info("Run Created Successfully with RunId " + run_id_str)
         return Response({
-            "run_id": str(directory_name),
+            "run_id": run_id_str,
             "details": "Success",
             "status": status.HTTP_200_OK})
     except Exception as e:
@@ -136,16 +139,22 @@ def data_availability(request, run_id):
         outcome_data = pd.read_csv(run.outcome_data.path, encoding="cp1252")
         history_data = pd.read_csv(run.scorecard_history.path, encoding="cp1252")
         company_data = None
+        metric_cols = run.metric_cols.split(",")
 
         if run.gainsight:
             company_data = pd.read_csv(run.account_details.path, encoding="cp1252")
         
-        obj=HealthAssessment(ID = run.id_field, churn_date = run.churn_date, snapshot_date = run.snapshot_date, target = 'Status', metrics_col=["Create Offer Tool",
-                        "Lost Sales","Last Visit","Opinion Scores","GM Tenure","Billing","CSM Opinion","CSS Opinion",
-                        "Avg Days to Close","Tenure","Close Rate","Default","Pricing","NPS"])
-        processed=obj.preprocess_data(outcome_data, history_data, company_data)
-        model_record=obj.run_health_assessment(processed)
-        available_data_timeline=obj.available_data(processed,obj.snapshot_date)
+        obj=HealthAssessment(
+            ID = run.id_field, 
+            churn_date = run.churn_date, 
+            snapshot_date = run.snapshot_date, 
+            target = 'Status', 
+            metrics_col=metric_cols
+        )
+
+        processed = obj.preprocess_data(outcome_data, history_data, company_data)
+        obj.run_health_assessment(processed)
+        available_data_timeline = obj.available_data(processed,obj.snapshot_date)
         
         for index, row in available_data_timeline.iterrows():
             if index[0] not in response:
@@ -154,25 +163,8 @@ def data_availability(request, run_id):
             elif index[1] not in response[index[0]]:
                 response[index[0]][index[1]] = {}
 
-            response[index[0]][index[1]]['Create Offer Tool'] = row['Create Offer Tool']
-            response[index[0]][index[1]]['Lost Sales'] = row['Lost Sales']
-            response[index[0]][index[1]]['Last Visit'] = row['Last Visit']
-            response[index[0]][index[1]]['Opinion Scores'] = row['Opinion Scores']
-            response[index[0]][index[1]]['GM Tenure'] = row['GM Tenure']
-            response[index[0]][index[1]]['Billing'] = row['Billing']
-            response[index[0]][index[1]]['CSM Opinion'] = row['CSM Opinion']
-            response[index[0]][index[1]]['CSS Opinion'] = row['CSS Opinion']
-            response[index[0]][index[1]]['Avg Days to Close'] = row['Avg Days to Close']
-            response[index[0]][index[1]]['Tenure'] = row['Tenure']
-            response[index[0]][index[1]]['Close Rate'] = row['Close Rate']
-            response[index[0]][index[1]]['Default'] = row['Default']
-            response[index[0]][index[1]]['Pricing'] = row['Pricing']
-            response[index[0]][index[1]]['NPS'] = row['NPS']
-            response[index[0]][index[1]]['Account ID'] = row['Account ID']
-            response[index[0]][index[1]]['Snapshot Date'] = row['Snapshot Date']
-            response[index[0]][index[1]]['Inactivation Date'] = row['Inactivation Date']
-            response[index[0]][index[1]]['Status'] = row['Status']
-            response[index[0]][index[1]]['week'] = row['week']
+            for col in metric_cols:
+                response[index[0]][index[1]][col] = row[col]
         return Response(response)
     except Exception as e:
         logger.error(str(e))
@@ -193,27 +185,31 @@ def download(request, report_id):
 def metrics_assessment(request, run_id):
     try:
         report_path = os.path.join(settings.MEDIA_ROOT, "user_"+run_id)
-        cols=['Create Offer Tool', 'Lost Sales', 'Last Visit', 'GM Tenure', 'Billing', 'CSM Opinion', 'CSS Opinion',
-            'Avg Days to Close', 'Tenure', 'Close Rate', 'Pricing', 'NPS']
 
         run = Run.objects.get(run_id=run_id)
         use_case = "Gainsight" if run.gainsight else ""
         outcome_data = pd.read_csv(run.outcome_data.path, encoding="cp1252")
         history_data = pd.read_csv(run.scorecard_history.path, encoding="cp1252")
         company_data = None
+        cols = run.metric_cols.split(",")
 
         if run.gainsight:
             company_data = pd.read_csv(run.account_details.path, encoding="cp1252")
         
-        obj=HealthAssessment(ID ='Account ID', churn_date = 'Inactivation Date', snapshot_date = 'Snapshot Date',target = 'Status', metrics_col=["Create Offer Tool",
-                        "Lost Sales","Last Visit","Opinion Scores","GM Tenure","Billing","CSM Opinion","CSS Opinion",
-                        "Avg Days to Close","Tenure","Close Rate","Default","Pricing","NPS"])
+        obj=HealthAssessment(
+            ID ='Account ID', 
+            churn_date = run.churn_date, 
+            snapshot_date = run.snapshot_date,
+            target = 'Status', 
+            metrics_col=cols
+        )
         
         processed=obj.preprocess_data(outcome_data, history_data, company_data)
         model_record=obj.run_health_assessment(processed)
+        # model_record.to_csv('x.csv')
         model_record.fillna(0, inplace=True)
         model_record.model_status=model_record.model_status.apply(lambda x: 0 if x=='Active' else 1) 
-        ks_output_dict = get_insights(model_record, cols, 'model_status', [3,4,5])
+        ks_output_dict = get_insights(data=model_record, metrics_cols=cols, target_col='model_status')
         
         create_report_entry = True
         outcome_timeline_reportpath = os.path.join(report_path, "outcome_timeline.csv")
@@ -268,7 +264,7 @@ class RunList(generics.ListCreateAPIView):
         self.serializer_class = RunSerializer(data=request.data)
         
         if self.serializer_class.is_valid():
-            self.serializer_class.save(user_id=user, run_id=run_id, preprocessed_file="test.txt")
+            self.serializer_class.save(run_id=run_id, preprocessed_file="test.txt")
             return Response(self.serializer_class.data, status=status.HTTP_201_CREATED)
         else:
             return Response(self.serializer_class.errors, status=status.HTTP_400_BAD_REQUEST)

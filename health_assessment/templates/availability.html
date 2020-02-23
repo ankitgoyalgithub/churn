@@ -150,54 +150,25 @@
                     processData: false,
                     contentType: false,
                     success: function(data) {
+                        console.log(data);
                         let plotData = [];
-                        const cols = [
-                            'Year',
-                            'Account ID',
-                            'Avg Days to Close',
-                            'Billing',
-                            'CSM Opinion',
-                            'CSS Opinion',
-                            'Close Rate',
-                            'Create Offer Tool',
-                            'Default',
-                            'GM Tenure',
-                            'Inactivation Date',
-                            'Last Visit',
-                            'Lost Sales',
-                            'NPS',
-                            'Opinion Scores',
-                            'Pricing',
-                            'Snapshot Date',
-                            'Status',
-                            'Tenure',
-                            'week'
-                        ]
+                        let cols;
+
+                        for (year in data) {
+                            for (month in data[year]) {
+                                cols = Object.keys(data[year][month]);
+                                break;
+                            }
+                        }
                         plotData.push(cols);
 
                         for (year in data) {
                             for (month in data[year]) {
                                 var temp = [];
                                 temp.push(year + "/" + month);
-                                temp.push(data[year][month]['Account ID']);
-                                temp.push(data[year][month]['Avg Days to Close']);
-                                temp.push(data[year][month]['Billing']);
-                                temp.push(data[year][month]['CSM Opinion']);
-                                temp.push(data[year][month]['CSS Opinion']);
-                                temp.push(data[year][month]['Close Rate']);
-                                temp.push(data[year][month]['Create Offer Tool']);
-                                temp.push(data[year][month]['Default']);
-                                temp.push(data[year][month]['GM Tenure']);
-                                temp.push(data[year][month]['Inactivation Date']);
-                                temp.push(data[year][month]['Last Visit']);
-                                temp.push(data[year][month]['Lost Sales']);
-                                temp.push(data[year][month]['NPS']);
-                                temp.push(data[year][month]['Opinion Scores']);
-                                temp.push(data[year][month]['Pricing']);
-                                temp.push(data[year][month]['Snapshot Date']);
-                                temp.push(data[year][month]['Status']);
-                                temp.push(data[year][month]['Tenure']);
-                                temp.push(data[year][month]['week']);
+                                for (column in cols) {
+                                    temp.push(data[year][month][column]);
+                                }
                                 plotData.push(temp);
                             }
                         }

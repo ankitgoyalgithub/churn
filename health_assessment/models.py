@@ -22,9 +22,10 @@ class Run(models.Model):
     scorecard_history = models.FileField(upload_to=upload_file_path)
     account_details = models.FileField(upload_to=upload_file_path, blank=True) 
     preprocessed_file = models.FileField(upload_to=upload_file_path)
-    id_field = models.CharField(max_length=64)
-    churn_date = models.CharField(max_length=64)
-    snapshot_date = models.CharField(max_length=64)
+    id_field = models.CharField(max_length=64, null=False)
+    churn_date = models.CharField(max_length=64, null=False)
+    snapshot_date = models.CharField(max_length=64, null=False)
+    metric_cols = models.CharField(max_length=2048, null=False)
     created_at = models.DateTimeField(default=datetime.now())
 
     def __str__(self):
