@@ -8,38 +8,11 @@ from pandas.compat import zip
 import numpy as np
 
 def qcutnew(x, q, labels=None, retbins=False, precision=3):
-    """
-    Quantile-based discretization function. Discretize variable into
-    equal-sized buckets based on rank or based on sample quantiles. For example
-    1000 values for 10 quantiles would produce a Categorical object indicating
-    quantile membership for each data point.
-    Parameters
-    ----------
-    x : ndarray or Series
-    q : integer or array of quantiles
-        Number of quantiles. 10 for deciles, 4 for quartiles, etc. Alternately
-        array of quantiles, e.g. [0, .25, .5, .75, 1.] for quartiles
-    labels : array or boolean, default None
-        Used as labels for the resulting bins. Must be of the same length as
-        the resulting bins. If False, return only integer indicators of the
-        bins.
-    retbins : bool, optional
-        Whether to return the bins or not. Can be useful if bins is given
-        as a scalar.
-    precision : int
-        The precision at which to store and display the bins labels
-    Returns
-    -------
-    out : Categorical or Series or array of integers if labels is False
-        The return type (Categorical or Series) depends on the input: a Series
-        of type category if input is a Series else Categorical. Bins are
-        represented as categories when categorical data is returned.
-    bins : ndarray of floats
-        Returned only if `retbins` is True.
-    Notes
-    -----
-    Out of bounds values will be NA in the resulting Categorical object
-    """
+    print(x)
+    print(q)
+    print(labels)
+    print(retbins)
+    print(precision)
     if com.is_integer(q):
         quantiles = np.linspace(0, 1, q + 1)
     else:
