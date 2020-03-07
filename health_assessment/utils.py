@@ -3,21 +3,33 @@ import boto3
 from health_assessment.Lib.AutoBinning import AutoBinning
 from health_assessment.Lib.KS import KS
 
-def get_insights(data=None, metrics_cols=None, target_col=None, bins_to_try=[3,4,5]):
-    best_bin_result_dict={}
+
+def get_insights(data=None, metrics_cols=None, target_col=None, bins_to_try=[3, 4, 5]):
+    best_bin_result_dict = {}
+
     for each in metrics_cols:
-        obj=AutoBinning(target_col,each,[3,4,5])
-        result_bin,result_threshold=obj.fit(data)
-        best_bin_result_dict[each]= result_threshold
-        
-    ks_output_dict={}
+        obj = AutoBinning(target_col, each, [3, 4, 5])
+        result_bin, result_threshold = obj.fit(data)
+        best_bin_result_dict[each] = result_threshold
+
+    ks_output_dict = {}
     for each in best_bin_result_dict.keys():
-        ksdev,kstable=KS(data.model_status,data[each],bincuts=best_bin_result_dict[each])#bincuts
-        kstable['Intensity of Risk']=kstable['dvrate']*1.0/kstable.cumdvrate.values[-1]
-        ks_output_dict[each]={'ksvalue':ksdev,'kstable':kstable[['Intensity of Risk']]}
+        ksdev, kstable = KS(
+            data.model_status, data[each], bincuts=best_bin_result_dict[each]
+        )  # bincuts
+        kstable["Intensity of Risk"] = (
+            kstable["dvrate"] * 1.0 / kstable.cumdvrate.values[-1]
+        )
+        ks_output_dict[each] = {
+            "ksvalue": ksdev,
+            "kstable": kstable[["Intensity of Risk"]],
+        }
     return ks_output_dict
 
-def read_s3_file(bucket_name=None, file_path=None, aws_access_key_id=None, aws_secret_access_key=None):
+
+def read_s3_file(
+    bucket_name=None, file_path=None, aws_access_key_id=None, aws_secret_access_key=None
+):
     """
     Reads a File from AWS S3
     """
@@ -27,32 +39,32 @@ def read_s3_file(bucket_name=None, file_path=None, aws_access_key_id=None, aws_s
 
         if aws_secret_access_key is None:
             raise Exception("Missing Secret Access Key")
-        
+
         if bucket_name is None:
             raise Exception("Missing Bucket Key")
-        
+
         if file_path is None:
             raise Exception("Missing File Path")
 
         headers = list()
         data = list()
 
-        s3_connection = boto3.resource('s3', aws_access_key_id = aws_access_key_id, aws_secret_access_key = aws_secret_access_key)
+        s3_connection = boto3.resource(
+            "s3",
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+        )
 
         bucket_connection = s3_connection.Bucket(bucket_name)
 
         for obj in bucket_connection.objects.filter(Prefix=file_path):
-            for line in obj.get()['Body'].read().splitlines():
+            for line in obj.get()["Body"].read().splitlines():
                 if len(headers) == 0:
-                    headers = line.decode().split(',')
+                    headers = line.decode().split(",")
                 else:
-                    data.append(line.decode().split(','))
-        
+                    data.append(line.decode().split(","))
+
         return headers, data
     except Exception as e:
         raise e
 
-if __name__ == '__main__':
-    headers, data = read_s3_file(bucket_name='voyanalytics', file_path='pageview.csv', aws_access_key_id="", aws_secret_access_key="")
-    print(headers)
-    print(data)
