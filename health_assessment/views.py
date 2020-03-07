@@ -196,6 +196,8 @@ def metrics_assessment(request, run_id):
         if run.gainsight:
             company_data = pd.read_csv(run.account_details.path, encoding="cp1252")
         
+        print(cols)
+        
         obj=HealthAssessment(
             ID ='Account ID', 
             churn_date = run.churn_date, 
@@ -206,10 +208,11 @@ def metrics_assessment(request, run_id):
         
         processed=obj.preprocess_data(outcome_data, history_data, company_data)
         model_record=obj.run_health_assessment(processed)
-        # model_record.to_csv('x.csv')
         model_record.fillna(0, inplace=True)
         model_record.model_status=model_record.model_status.apply(lambda x: 0 if x=='Active' else 1) 
         ks_output_dict = get_insights(data=model_record, metrics_cols=cols, target_col='model_status')
+
+        print(ks_output_dict)
         
         create_report_entry = True
         outcome_timeline_reportpath = os.path.join(report_path, "outcome_timeline.csv")
